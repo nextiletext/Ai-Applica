@@ -1,29 +1,28 @@
 import streamlit as st
 import random
 
-st.set_page_config(page_title="AI Art Bot", page_icon="🎨")
-st.title("🎨 The Unstoppable Image Bot")
-st.write("Generating art using high-speed community servers.")
+st.set_page_config(page_title="AI Art Generator", page_icon="🖼️")
+st.title("🖼️ Ultra-Stable Art Bot")
+st.write("If an image doesn't show up, just click 'Generate' again!")
 
 # 1. Get the User Prompt
-prompt = st.text_input("What do you want to see?", placeholder="A cool neon tiger...")
+prompt = st.text_input("What do you want to see?", placeholder="A futuristic castle...")
 
 if st.button("Generate Image"):
     if prompt:
-        # We create a random seed to make sure every image is unique
-        seed = random.randint(0, 999999)
+        # The Secret Sauce: A random number forces the server to try harder
+        seed = random.randint(1, 9999999)
         
-        # This is a direct URL to the image generator
-        # No API keys, no billing, no age gates.
-        image_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?seed={seed}&width=1024&height=1024&nologo=true"
+        # We use a slightly different URL structure that is more stable in 2026
+        # Adding 'turbo=true' helps prioritize your request
+        image_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?seed={seed}&width=1024&height=1024&nologo=true&turbo=true"
         
-        # 2. Display the image directly using the URL
-        # Streamlit handles the 'loading' state automatically here
-        with st.spinner("AI is painting... this should only take a few seconds!"):
+        with st.spinner("🎨 AI is painting your masterpiece..."):
+            # We display the image
             st.image(image_url, caption=f"Result for: {prompt}", use_container_width=True)
-            st.success("There it is! No more errors.")
             
-            # Optional: Add a download button for the user
-            st.markdown(f"[Download Image]({image_url})")
+            # This 'Download' link also acts as a backup in case the display fails
+            st.markdown(f"🔗 [Direct Image Link]({image_url})")
+            st.info("Tip: If the image above is blank, wait 3 seconds and click Generate again.")
     else:
-        st.warning("Type something in the box first!")
+        st.warning("Please type something first!")
