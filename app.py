@@ -4,39 +4,44 @@ import io
 import time
 from PIL import Image
 
-st.set_page_config(page_title="AI Art Generator", page_icon="🎨")
-st.title("🎨 AI Art Generator")
+st.set_page_config(page_title="Instant AI Art", page_icon="⚡")
+st.title("⚡ Fast AI Image Bot")
+st.write("Using FLUX.1 (The fastest free model in 2026)")
 
+# Using your Hugging Face Token from Secrets
 HF_TOKEN = st.secrets["HF_TOKEN"]
-API_URL = "https://api-inference.huggingface.co/models/stabilityai/stable-diffusion-xl-base-1.0"
+
+# Switch to the 'Schnell' (Fast) model - it's designed for speed
+API_URL = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-schnell"
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
-def query(payload):
-    # This loop will retry if the model is still loading
-    for _ in range(3): 
-        response = requests.post(API_URL, headers=headers, json=payload)
-        output = response.content
-        
-        # Check if the model is still loading
-        if response.status_code == 200:
-            return output
-        elif "estimated_time" in response.text:
-            wait_time = response.json().get("estimated_time", 10)
-            st.info(f"AI is waking up... waiting {int(wait_time)} seconds.")
-            time.sleep(wait_time)
-        else:
-            continue
-    return None
+def generate_art(prompt_text):
+    # We send the request and wait up to 120 seconds for a response
+    response = requests.post(API_URL, headers=headers, json={"inputs": prompt_text}, timeout=120)
+    
+    if response.status_code == 200:
+        return response.content
+    elif response.status_code == 503:
+        # This means the model is loading. We tell the user to wait.
+        return "LOADING"
+    else:
+        return None
 
-prompt = st.text_input("Describe your image:")
+prompt = st.text_input("Enter your prompt:")
 
 if st.button("Generate"):
     if prompt:
-        with st.spinner("Creating..."):
-            image_bytes = query({"inputs": prompt})
-            if image_bytes:
-                image = Image.open(io.BytesIO(image_bytes))
-                st.image(image)
-                st.success("Done!")
-            else:
-                st.error("Model took too long to wake up. Try one more time!")
+        status_placeholder = st.empty()
+        status_placeholder.info("Sending request to AI...")
+        
+        result = generate_art(prompt)
+        
+        if result == "LOADING":
+            status_placeholder.warning("AI is warming up! Give it 30 seconds and click Generate again.")
+        elif result:
+            image = Image.open(io.BytesIO(result))
+            status_placeholder.empty()
+            st.image(image, use_container_width=True)
+            st.success("Success!")
+        else:
+            st.error("Model is currently too busy. Try again in a minute!")
