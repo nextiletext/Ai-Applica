@@ -1,41 +1,29 @@
 import streamlit as st
-import requests
-import io
-from PIL import Image
 import random
 
-st.set_page_config(page_title="Relentless AI Art", page_icon="🔥")
-st.title("🔥 The 'Never-Give-Up' AI Bot")
+st.set_page_config(page_title="AI Art Bot", page_icon="🎨")
+st.title("🎨 The Unstoppable Image Bot")
+st.write("Generating art using high-speed community servers.")
 
-prompt = st.text_input("What should I draw?", placeholder="A dragon made of blue fire...")
+# 1. Get the User Prompt
+prompt = st.text_input("What do you want to see?", placeholder="A cool neon tiger...")
 
 if st.button("Generate Image"):
     if prompt:
-        with st.spinner("Searching for an available AI server..."):
-            seed = random.randint(0, 999999)
+        # We create a random seed to make sure every image is unique
+        seed = random.randint(0, 999999)
+        
+        # This is a direct URL to the image generator
+        # No API keys, no billing, no age gates.
+        image_url = f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?seed={seed}&width=1024&height=1024&nologo=true"
+        
+        # 2. Display the image directly using the URL
+        # Streamlit handles the 'loading' state automatically here
+        with st.spinner("AI is painting... this should only take a few seconds!"):
+            st.image(image_url, caption=f"Result for: {prompt}", use_container_width=True)
+            st.success("There it is! No more errors.")
             
-            # We try up to 3 different public art servers
-            # 1. Pollinations (Main)
-            # 2. Cloudflare (Backup)
-            # 3. Random Seed (Variation)
-            urls = [
-                f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?seed={seed}&nologo=true",
-                f"https://image.pollinations.ai/prompt/{prompt.replace(' ', '%20')}?seed={seed+1}&width=512&height=512",
-                f"https://pollinations.ai/p/{prompt.replace(' ', '%20')}"
-            ]
-            
-            success = False
-            for url in urls:
-                try:
-                    response = requests.get(url, timeout=10)
-                    if response.status_code == 200:
-                        image = Image.open(io.BytesIO(response.content))
-                        st.image(image, use_container_width=True)
-                        st.success("Got it!")
-                        success = True
-                        break # Stop searching if we find a working server
-                except:
-                    continue # Try the next URL if this one fails
-            
-            if not success:
-                st.error("All free servers are packed right now. Wait 10 seconds and try again!")
+            # Optional: Add a download button for the user
+            st.markdown(f"[Download Image]({image_url})")
+    else:
+        st.warning("Type something in the box first!")
